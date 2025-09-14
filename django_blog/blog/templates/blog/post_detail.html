@@ -1,0 +1,43 @@
+<h2>{{ post.title }}</h2>
+<p>By {{ post.author }} on {{ post.created_at }}</p>
+<p>{{ post.content }}</p>
+
+{% if user == post.author %}
+    <a href="{% url 'post-update' post.pk %}">Edit</a>
+    <a href="{% url 'post-delete' post.pk %}">Delete</a>
+{% endif %}
+
+<a href="{% url 'post-list' %}">Back to All Posts</a>
+
+<h2>Comments</h2>
+<ul>
+    {% for comment in post.comments.all %}
+        <li>
+            <strong>{{ comment.author }}</strong>: {{ comment.content }}
+            {% if comment.author == user %}
+                <a href="{% url 'comment-edit' comment.id %}">Edit</a>
+                <form action="{% url 'comment-delete' comment.id %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit">Delete</button>
+                </form>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
+
+{% if user.is_authenticated %}
+    <form method="post" action="{% url 'comment-add' post.id %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Add Comment</button>
+    </form>
+{% else %}
+    <p>You need to <a href="{% url 'login' %}">log in</a> to comment.</p>
+{% endif %}
+
+<p>Tags: 
+    {% for tag in post.tags.all %}
+        <a href="{% url 'blog:posts-by-tag' tag.name %}">{{ tag.name }}</a>
+        {% if not forloop.last %}, {% endif %}
+    {% endfor %}
+</p>
