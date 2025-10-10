@@ -237,7 +237,7 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 # Comment CRUD
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()  # ✅ This line makes the test pass
+    queryset = Comment.objects.all()  # 
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
