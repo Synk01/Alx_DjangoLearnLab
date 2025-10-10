@@ -213,4 +213,33 @@ class UserListView(ListAPIView):
 class UserListCreateView(generics.ListCreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]        
+    permission_classes = [IsAuthenticated]
+
+from rest_framework import viewsets, permissions
+from .models import Post, Comment
+from .serializers import PostSerializer, CommentSerializer
+
+# Custom permission: only owner can edit/delete
+class IsOwnerOrReadOnly(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        # SAFE_METHODS = GET, HEAD, OPTIONS
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        # Otherwise, only owner can modify
+        return obj.author == request.user
+# Post CRUD
+class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+# Comment CRUD
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()  # ✅ This line makes the test pass
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
